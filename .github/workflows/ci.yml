@@ -1,0 +1,19 @@
+name: ci
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile (system Python, stdlib only)
+        run: for f in src/*.py src/checks/*.py; do /usr/bin/python3 -m py_compile "$f"; done
+      - name: Unit tests
+        run: /usr/bin/python3 -m unittest discover -s tests -v
+      - name: Shell syntax
+        run: for f in install.sh uninstall.sh scripts/daily-gate.sh scripts/zeke app/build.sh; do zsh -n "$f"; done
+      - name: launchd templates
+        run: for f in launchd/*.plist.in; do sed -e 's|__[A-Z_]*__|x|g' "$f" | plutil -lint -; done
+      - name: Build app and helper
+        run: app/build.sh

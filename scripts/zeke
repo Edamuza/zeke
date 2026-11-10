@@ -1,0 +1,13 @@
+#!/bin/zsh
+# zeke — command-line front end for the Zeke engine.
+#   zeke open            open the dashboard in your browser (passes the access token once)
+#   zeke scan [--deep]   scan now          zeke plan        what "Update everything" would do
+#   zeke update-all      update everything zeke status      current run + counts
+#   zeke feeds           refresh security data                zeke help
+ZEKE_HOME="${ZEKE_HOME:-$HOME/.zeke}"
+cmd="${1:-help}"; shift 2>/dev/null
+case "$cmd" in
+  open)  exec /usr/bin/python3 "$ZEKE_HOME/engine.py" open-dashboard ;;
+  help|-h|--help) sed -n '2,7p' "$0" | sed 's/^# \{0,1\}//' ;;
+  *)     exec /usr/bin/python3 "$ZEKE_HOME/engine.py" "$cmd" "$@" ;;
+esac

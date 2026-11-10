@@ -1,0 +1,12 @@
+# build output
+app/build/
+__pycache__/
+*.pyc
+.DS_Store
+# never commit runtime data, logs or secrets (they live in ~/.zeke, but just in case)
+data/
+logs/
+*.log
+token
+config.json
+.impeccable/

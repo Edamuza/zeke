@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>__PREFIX__.daily</string>
+  <key>ProgramArguments</key><array><string>/bin/zsh</string><string>__ZEKE_HOME__/daily-gate.sh</string></array>
+  <key>EnvironmentVariables</key><dict><key>PATH</key><string>__PATH__</string><key>ZEKE_HOME</key><string>__ZEKE_HOME__</string></dict>
+  <key>RunAtLoad</key><true/>
+  <key>StartInterval</key><integer>3600</integer>
+  <key>WatchPaths</key><array><string>/Library/Preferences/SystemConfiguration</string></array>
+  <key>StandardOutPath</key><string>__ZEKE_HOME__/logs/daily-gate.log</string>
+  <key>StandardErrorPath</key><string>__ZEKE_HOME__/logs/daily-gate.log</string>
+</dict></plist>

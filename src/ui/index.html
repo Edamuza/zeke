@@ -1,0 +1,664 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zeke</title>
+<style>
+:root{
+  --bg:#f6f6f4;--panel:#ffffff;--ink:#1d1d1f;--muted:#6e6e73;--faint:#737379;--line:#e6e6e3;--hover:#f1f1ee;
+  --accent:#4f46e5;--accent-ink:#fff;--ok:#1d7a44;--ok-bg:#e6f4ec;--warn:#9a5100;--warn-bg:#fdf0dd;
+  --unk:#55555f;--unk-bg:#ececf0;--bad:#b42a25;--bad-bg:#fbe7e6;--code:#0f1115;--code-ink:#d6d8de;
+  --shadow:0 1px 2px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.04);--focus:0 0 0 3px color-mix(in srgb,var(--accent) 40%,transparent);
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#141416;--panel:#1c1c1f;--ink:#ececf0;--muted:#a0a0a9;--faint:#8f8f99;--line:#2c2c31;--hover:#242428;
+  --accent:#8b85ff;--accent-ink:#0d0d12;--ok:#5fd08f;--ok-bg:#16301f;--warn:#ffb457;--warn-bg:#3a2a12;
+  --unk:#b9b9c4;--unk-bg:#2a2a30;--bad:#ff8a82;--bad-bg:#3a1a19;--code:#0b0b0d;--code-ink:#cfd2da;
+  --shadow:none;
+}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:13.5px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:none;box-shadow:var(--focus);border-radius:8px}
+a{color:var(--accent)}
+.wrap{max-width:1280px;margin:0 auto;padding:20px 24px 48px}
+header{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;margin-right:auto}
+.logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#22b8cf);display:grid;place-items:center;color:#fff}
+h1{font-size:17px;margin:0;font-weight:650;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:12px}
+.btn{border:1px solid var(--line);background:var(--panel);padding:6px 12px;border-radius:8px;font-weight:550;display:inline-flex;align-items:center;gap:6px;box-shadow:var(--shadow);white-space:nowrap}
+.btn:hover{background:var(--hover)}
+.btn.primary{background:var(--accent);border-color:transparent;color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.danger{color:var(--bad)}
+.btn.sm{padding:3px 10px;font-size:12px;box-shadow:none}
+.btn.link{border:0;background:none;box-shadow:none;color:var(--accent);padding:4px 8px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0 14px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow);text-align:left}
+.stat:hover{background:var(--hover)}
+.stat .n{font-size:24px;font-weight:650;letter-spacing:-.02em;font-variant-numeric:tabular-nums;display:flex;align-items:baseline;gap:8px}
+.stat .n small{font-size:12px;font-weight:600;color:var(--bad)}
+.stat .l{color:var(--muted);font-size:12px;display:flex;align-items:center;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none}
+.d-outdated{background:var(--warn)}.d-current{background:var(--ok)}.d-unknown{background:var(--faint)}.d-bad{background:var(--bad)}
+.banner{display:none;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:14px;box-shadow:var(--shadow)}
+.banner.on{display:flex}
+.spin{width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:s .8s linear infinite;flex:none}
+@keyframes s{to{transform:rotate(360deg)}}
+nav.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:14px}
+nav.tabs button{background:none;border:0;padding:8px 12px;color:var(--muted);font-weight:550;border-bottom:2px solid transparent;margin-bottom:-1px;border-radius:0;display:inline-flex;gap:6px;align-items:center}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.pill{background:var(--bad-bg);color:var(--bad);border-radius:999px;padding:2px 8px;font-size:11px;font-weight:700}
+.grid{display:grid;grid-template-columns:220px minmax(0,1fr);gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+.side{padding:6px;align-self:start;position:sticky;top:12px}
+.side button{display:flex;width:100%;justify-content:space-between;align-items:center;background:none;border:0;padding:7px 10px;border-radius:7px;text-align:left}
+.side button:hover{background:var(--hover)}
+.side button.on{background:var(--hover);font-weight:600}
+.side .cnt{color:var(--faint);font-size:12px;font-variant-numeric:tabular-nums}
+.side .badge{background:var(--warn-bg);color:var(--warn);border-radius:999px;padding:2px 8px;font-size:11px;font-weight:650;margin-left:6px}
+.side hr{border:0;border-top:1px solid var(--line);margin:6px 4px}
+.toolbar{display:flex;gap:10px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.search{flex:1;min-width:160px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:6px 10px;font:inherit;outline:none}
+.search:focus{border-color:var(--accent)}
+select{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:5px 10px}
+.seg{display:inline-flex;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:2px}
+.seg button{border:0;background:none;padding:4px 12px;border-radius:6px;color:var(--muted);font-size:12px;font-weight:550}
+.seg button.on{background:var(--panel);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+label.chk{display:inline-flex;gap:6px;align-items:center;color:var(--muted);font-size:12px;cursor:pointer}
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--faint);font-weight:600;text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--panel);z-index:1}
+td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr:hover>td{background:var(--hover)}
+tr.xrow>td{background:var(--bg)!important;padding:12px 14px 14px 46px}
+.nmb{background:none;border:0;padding:0;text-align:left;font-weight:560;display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+.nmb .caret{color:var(--faint);font-size:10px;width:10px;display:inline-block;transition:transform .15s}
+.nmb[aria-expanded="true"] .caret{transform:rotate(90deg)}
+.note{color:var(--muted);font-size:11.5px;margin-top:1px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ver{font:12px/1.3 ui-monospace,"SF Mono",Menlo,monospace;color:var(--muted);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ver.new{color:var(--warn);font-weight:600}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:600;white-space:nowrap}
+.chip.xs{padding:3px 9px;font-size:11px}
+.c-current,.c-ok{background:var(--ok-bg);color:var(--ok)}
+.c-outdated,.c-partial,.c-medium,.c-issue{background:var(--warn-bg);color:var(--warn)}
+.c-unknown,.c-low,.c-info,.c-muted,.c-held,.c-interrupted,.c-no-change,.c-cancelled{background:var(--unk-bg);color:var(--unk)}
+.c-failed,.c-needs-password,.c-needs-fix,.c-critical,.c-high,.c-exploited{background:var(--bad-bg);color:var(--bad)}
+.c-exploited{font-weight:700}
+.c-running{background:var(--unk-bg);color:var(--accent)}
+.src{color:var(--muted);font-size:12px;white-space:nowrap}
+.empty{padding:40px;text-align:center;color:var(--muted)}
+.selbar{display:none;gap:10px;align-items:center;padding:8px 12px;background:var(--hover);border-bottom:1px solid var(--line);font-size:12.5px}
+.selbar.on{display:flex}
+.runs{max-height:70vh;overflow:auto;padding:6px}
+.run{display:block;width:100%;text-align:left;background:none;border:0;border-radius:8px;padding:8px 10px}
+.run:hover,.run.on{background:var(--hover)}
+.run .t{font-weight:580;display:flex;justify-content:space-between;gap:6px}
+.run .m{color:var(--muted);font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.detail{padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.steps{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.step{display:grid;grid-template-columns:22px minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:7px 10px;border-bottom:1px solid var(--line);font-size:12.5px}
+.step:last-child{border-bottom:0}
+.ico{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700}
+.i-ok{background:var(--ok-bg);color:var(--ok)}.i-no-change,.i-cancelled{background:var(--unk-bg);color:var(--unk)}
+.step .snote{grid-column:2/5;color:var(--muted);font-size:12px;margin-top:-2px}.i-failed,.i-needs-fix,.i-needs-password{background:var(--bad-bg);color:var(--bad)}.i-running{background:var(--unk-bg)}
+pre.log,pre.cmd{margin:0;background:var(--code);color:var(--code-ink);border-radius:10px;padding:12px 14px;font:11.5px/1.5 ui-monospace,"SF Mono",Menlo,monospace;overflow:auto;white-space:pre-wrap;word-break:break-word}
+pre.log{height:52vh}
+.jobs{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.job{padding:14px;display:flex;flex-direction:column;gap:6px}
+.job h3{margin:0;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.kv{display:grid;grid-template-columns:110px 1fr;gap:3px 10px;font-size:12px}
+.kv dt{color:var(--muted)}.kv dd{margin:0;font-variant-numeric:tabular-nums}
+.sw{position:relative;width:34px;height:20px;flex:none;display:inline-block}
+.sw input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer;z-index:1}
+.sw span{position:absolute;inset:0;background:var(--line);border-radius:999px;transition:.15s}
+.sw span:before{content:"";position:absolute;width:16px;height:16px;left:2px;top:2px;background:#fff;border-radius:50%;transition:.15s;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.sw input:checked+span{background:var(--accent)}
+.sw input:checked+span:before{transform:translateX(14px)}
+.sw input:focus-visible+span{box-shadow:var(--focus)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row .d{color:var(--muted);font-size:12px}
+h2{font-size:13px;margin:18px 0 8px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:10px}
+h2 .grow{flex:1}
+.sec-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:14px}
+.find{padding:12px 14px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 12px;align-items:start}
+.find:last-child{border-bottom:0}
+.find .ttl{font-weight:580}
+.find .meta{color:var(--muted);font-size:12px;grid-column:2}
+.find .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.find .more{grid-column:2/4;display:flex;flex-direction:column;gap:8px;font-size:12.5px}
+.prot{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 12px;padding:12px 14px;font-size:13px;align-items:center}
+.ledger td{font-size:12.5px}
+details>summary{cursor:pointer;color:var(--muted);font-size:12.5px;padding:10px 14px;list-style:none}
+details>summary::-webkit-details-marker{display:none}
+details>summary:before{content:"▸ ";color:var(--faint)}
+details[open]>summary:before{content:"▾ "}
+.fixbox{display:flex;flex-direction:column;gap:6px}
+.fixbox .w{color:var(--muted);font-size:12px}
+.radio{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;align-items:center}
+.radio label{display:inline-flex;gap:5px;align-items:center;cursor:pointer}
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--ink);padding:0;max-width:520px;width:calc(100% - 32px);box-shadow:0 20px 60px rgba(0,0,0,.25)}
+dialog::backdrop{background:rgba(0,0,0,.35)}
+dialog .db{padding:18px 20px;display:flex;flex-direction:column;gap:10px}
+dialog h3{margin:0;font-size:15px}
+dialog .dfoot{display:flex;justify-content:flex-end;gap:8px;padding:12px 20px;border-top:1px solid var(--line)}
+dialog ul{margin:0;padding-left:18px;font-size:13px}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:12.5px;opacity:0;transition:.2s;pointer-events:none;max-width:90vw}
+#toast.on{opacity:1}
+.gate{max-width:460px;margin:15vh auto;text-align:center;color:var(--muted)}
+.hide{display:none!important}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (max-width:1100px){.hide-md{display:none}.sec-grid{grid-template-columns:1fr}}
+@media (max-width:820px){.grid{grid-template-columns:1fr}.side{position:static}.stats{grid-template-columns:1fr 1fr}.hide-sm{display:none}.wrap{padding:16px}}
+</style>
+</head>
+<body>
+<div class="gate hide" id="gate">
+  <h2 style="justify-content:center">Open from the Zeke app</h2>
+  <p>For safety, this dashboard only works when opened from the Zeke app (or with <code>zeke open</code>), so other programs on this Mac can't control it.</p>
+</div>
+<div class="wrap" id="app">
+  <header>
+    <div class="brand">
+      <div class="logo" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></div>
+      <div><h1>Zeke</h1><div class="sub" id="scanned">Loading…</div></div>
+    </div>
+    <button class="btn" id="bScan">Scan now</button>
+    <button class="btn primary" id="bAll">Update everything…</button>
+  </header>
+
+  <div class="stats">
+    <button class="stat" data-st="outdated"><div class="l"><span class="dot d-outdated"></span>Updates available</div><div class="n" id="nOut">–</div></button>
+    <button class="stat" data-st="current"><div class="l"><span class="dot d-current"></span>Up to date</div><div class="n" id="nCur">–</div></button>
+    <button class="stat" data-st="unknown"><div class="l"><span class="dot d-unknown"></span>Can't tell</div><div class="n" id="nUnk">–</div></button>
+    <button class="stat" data-goto="sec"><div class="l"><span class="dot" id="secDot"></span>Security to review</div><div class="n" id="nSec">–</div><div class="sub" id="secSub"></div></button>
+  </div>
+
+  <div class="banner" id="banner" role="status"><div class="spin"></div><div style="flex:1;min-width:0"><b id="bnT"></b> <span class="sub" id="bnS"></span></div><button class="btn sm" id="bnLog">View log</button><button class="btn sm danger" id="bnStop">Stop</button></div>
+
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button role="tab" id="tab-inv" aria-controls="t-inv" aria-selected="true" data-tab="inv">Inventory</button>
+    <button role="tab" id="tab-sec" aria-controls="t-sec" aria-selected="false" tabindex="-1" data-tab="sec">Security <span class="pill hide" id="secPill"></span></button>
+    <button role="tab" id="tab-act" aria-controls="t-act" aria-selected="false" tabindex="-1" data-tab="act">Activity &amp; logs</button>
+    <button role="tab" id="tab-sch" aria-controls="t-sch" aria-selected="false" tabindex="-1" data-tab="sch">Schedule</button>
+  </nav>
+
+  <section id="t-inv" role="tabpanel" aria-labelledby="tab-inv">
+    <div class="grid">
+      <div class="card side" id="sources"></div>
+      <div class="card" style="min-width:0;overflow:hidden">
+        <div class="toolbar">
+          <input class="search" id="q" placeholder="Search apps, tools, libraries…" autocomplete="off" aria-label="Search">
+          <div class="seg" id="seg" role="group" aria-label="Filter by status">
+            <button data-st="all" class="on">All</button><button data-st="outdated">Updates</button><button data-st="security">Security</button><button data-st="unknown">Can't tell</button><button data-st="current">Up to date</button>
+          </div>
+          <label class="chk">Sort <select id="sort" aria-label="Sort"><option value="risk">Risk</option><option value="status">Status</option><option value="name">Name</option></select></label>
+          <label class="chk"><input type="checkbox" id="deps"> Dependencies</label>
+        </div>
+        <div class="selbar" id="selbar"><b id="selN"></b><button class="btn sm primary" id="bSel">Update selected</button><button class="btn sm" id="bSelClr">Clear</button></div>
+        <div style="overflow:auto;max-height:72vh">
+          <table><thead><tr><th style="width:28px"><input type="checkbox" id="selAll" aria-label="Select all updatable"></th><th>Name</th><th class="hide-md">Source</th><th>Installed</th><th>Latest</th><th>Status</th><th style="text-align:right"><span class="hide">Action</span></th></tr></thead><tbody id="rows"></tbody></table>
+          <div class="empty hide" id="empty">Nothing matches.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="t-sec" role="tabpanel" aria-labelledby="tab-sec" class="hide">
+    <h2><span>Needs attention</span><span class="grow"></span>
+      <span class="seg" id="secSeg" role="group" aria-label="Filter findings"><button data-f="open" class="on">Open</button><button data-f="new">New this week</button><button data-f="muted">Muted &amp; held</button></span>
+    </h2>
+    <div class="card" id="attention"></div>
+    <div class="card" style="margin-top:10px"><details id="notedBox"><summary id="notedSum">Also noted</summary><div id="noted"></div></details></div>
+    <div class="sec-grid" style="margin-top:4px">
+      <div><h2>Mac protections</h2><div class="card" id="prot"></div></div>
+      <div><h2><span>What was checked</span><span class="grow"></span><button class="btn sm" id="bDeep">Deep check now</button></h2><div class="card" id="checked"></div></div>
+    </div>
+    <h2>What leaves this Mac</h2>
+    <div class="card" style="overflow:auto"><table class="ledger"><thead><tr><th>Purpose</th><th>Goes to</th><th>What's sent</th><th>Last contact</th><th></th></tr></thead><tbody id="ledger"></tbody></table></div>
+  </section>
+
+  <section id="t-act" role="tabpanel" aria-labelledby="tab-act" class="hide">
+    <div class="grid">
+      <div class="card"><div class="runs" id="runs"></div></div>
+      <div class="card detail" id="detail"></div>
+    </div>
+  </section>
+
+  <section id="t-sch" role="tabpanel" aria-labelledby="tab-sch" class="hide">
+    <h2>Automatic updates</h2>
+    <div class="card">
+      <div class="row"><div><b id="lDaily">Daily auto-update</b><div class="d">Once a day, only on Wi‑Fi/Ethernet faster than 50 Mbps (never on phone hotspot). Refreshes security data, then updates what “Update everything” covers — security fixes first, held items skipped.</div></div><label class="sw"><input type="checkbox" role="switch" id="sDaily" aria-labelledby="lDaily"><span></span></label></div>
+      <div class="row"><div><b id="lWeekly">Weekly check</b><div class="d">Sundays 10:00 — full scan including deep security checks, then a notification with what needs attention.</div></div><label class="sw"><input type="checkbox" role="switch" id="sWeekly" aria-labelledby="lWeekly"><span></span></label></div>
+      <div class="row"><div><b id="lNotify">Urgent security notifications</b><div class="d">At most once per finding: actively exploited vulnerabilities, a Mac protection turned off, or a new root background item.</div></div><label class="sw"><input type="checkbox" role="switch" id="sNotify" aria-labelledby="lNotify"><span></span></label></div>
+    </div>
+    <h2>Background jobs</h2>
+    <div class="jobs" id="jobs"></div>
+    <h2><span>Security data</span><span class="grow"></span><button class="btn sm" id="bFeeds">Refresh now</button></h2>
+    <div class="card" id="feeds"></div>
+    <h2>Data sources (last scan)</h2>
+    <div class="card" id="cols"></div>
+  </section>
+</div>
+
+<dialog id="dlg" aria-labelledby="dlgT"><div class="db"><h3 id="dlgT"></h3><div id="dlgB"></div></div><div class="dfoot"><button class="btn" id="dlgNo">Cancel</button><button class="btn primary" id="dlgYes">OK</button></div></dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script nonce="__NONCE__">
+"use strict";
+// ---- token: injected by the app, or passed once in #k= by `engine.py open-dashboard`
+let TOKEN = window.UC_TOKEN || "";
+try{
+  const m = location.hash.match(/k=([A-Za-z0-9_-]{20,})/);
+  if(m){ TOKEN = m[1]; sessionStorage.setItem("uc_token", TOKEN); history.replaceState(null, "", location.pathname); }
+  if(!TOKEN) TOKEN = sessionStorage.getItem("uc_token") || "";
+}catch(e){}
+
+const ORDER = ["macOS","App Store apps","Other apps","Homebrew apps","Homebrew formulae","CLI tools"];   // npm · … and the rest follow
+const ORDER_TAIL = ["Ruby gems","Python packages","uv tools"];
+const COLMAP_FIXED = {"brew":"Homebrew (formulae + apps)","gem":"Ruby gems","pip":"Python packages","uv-tools":"uv tools","clis":"CLI tools","macos":"macOS","apps":"Apps in /Applications"};
+const colLabel = k => COLMAP_FIXED[k] || (k.startsWith("npm-") ? "npm · " + (k==="npm-brew" ? "Homebrew node" : k.slice(4)) : k);
+const LABEL = {current:"Up to date",outdated:"New version",unknown:"Can't tell"};
+const SEVTXT = {critical:"▲ Critical",high:"▲ High",medium:"● Medium",low:"○ Low",info:"○ Info"};
+const KIND = {vuln:"Vulnerability",lifecycle:"Homebrew",patch:"macOS",posture:"Mac protection",persistence:"Launch items","source-trust":"Homebrew"};
+let S = null, SEC = null, secRev = null;
+const ui = {src:"all", st:"all", q:"", deps:false, sort:"risk", sel:new Set(), open:new Set(), tab:"inv", run:null, logOff:0, logRun:null, legacy:false, secF:"open", fOpen:new Set()};
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const safeUrl = u => /^https:\/\/[^\s"'<>]+$/.test(u||"") ? u : null;
+function ago(iso){ if(!iso) return "never"; const s=(Date.now()-new Date(iso))/1000; if(s<60) return "just now"; if(s<3600) return Math.round(s/60)+" min ago"; if(s<86400) return Math.round(s/3600)+" h ago"; return Math.round(s/86400)+" d ago"; }
+function when(iso){ return iso ? new Date(iso).toLocaleString([], {weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}) : "—"; }
+function day(d){ return d ? new Date(d.length===10? d+"T12:00:00": d).toLocaleDateString([], {month:"short",day:"numeric"}) : "—"; }
+function toast(m){ const t=$("toast"); t.textContent=m; t.classList.add("on"); clearTimeout(toast.h); toast.h=setTimeout(()=>t.classList.remove("on"),3200); }
+// set innerHTML only when it changed, and keep keyboard focus by data-key
+function setHTML(el, html){
+  if(el._h === html) return;
+  const a = document.activeElement, key = a && el.contains(a) ? a.dataset.key : null;
+  el.innerHTML = html; el._h = html;
+  if(key){ const n = el.querySelector(`[data-key="${CSS.escape(key)}"]`); if(n) n.focus(); }
+}
+async function api(path, body){
+  const opt = {cache:"no-store", headers:{"X-Token":TOKEN}};
+  if(body!==undefined){ opt.method="POST"; opt.headers["Content-Type"]="application/json"; opt.body=JSON.stringify(body); }
+  const r = await fetch(path, opt);
+  const j = await r.json().catch(()=>({}));
+  if(r.status===403 && body===undefined){ showGate(); throw new Error("token"); }
+  if(!r.ok){ toast(j.error || ("Error "+r.status)); throw new Error(j.error); }
+  return j;
+}
+function showGate(){ $("gate").classList.remove("hide"); $("app").classList.add("hide"); }
+function ask(title, html, yes="OK", danger=false){
+  return new Promise(res => {
+    const d=$("dlg"); $("dlgT").textContent=title; $("dlgB").innerHTML=html; $("dlgYes").textContent=yes;
+    $("dlgYes").className = "btn " + (danger? "danger":"primary");
+    const done = v => { d.close(); $("dlgYes").onclick=$("dlgNo").onclick=null; res(v); };
+    $("dlgYes").onclick=()=>done(true); $("dlgNo").onclick=()=>done(false); d.oncancel=()=>done(false);
+    d.showModal(); $("dlgNo").focus();
+  });
+}
+async function copy(text){
+  try{ await navigator.clipboard.writeText(text); }
+  catch(e){ const t=document.createElement("textarea"); t.value=text; document.body.appendChild(t); t.select(); document.execCommand("copy"); t.remove(); }
+  toast("Copied");
+}
+
+// ---- data
+async function load(){
+  if(!TOKEN){ showGate(); return; }
+  try{
+    S = await api("/api/state");
+    if(!SEC || S.security?.rev !== secRev){ SEC = await api("/api/security"); secRev = S.security?.rev; }
+    render();
+  }catch(e){ if(e.message!=="token") $("scanned").textContent = "Can't reach the Zeke server"; }
+  clearTimeout(load.h); load.h = setTimeout(load, S && S.current ? 2000 : 20000);
+}
+const items = () => S?.inventory?.items || [];
+const appUpd = i => i.source==="Other apps" && i.bundle_id && !(S?.self_bundles||[]).includes(i.bundle_id) && i.path;
+const appReady = i => appUpd(i) && !i.self_update_blocked;   // can Open & update actually work?
+const AU_TIP = "Opens the app in the background, waits for its own updater to download, then closes it so the update installs. Apps you already have open are left open.";
+const findings = () => SEC?.security?.findings || [];
+function byItem(){
+  const m = {}; findings().forEach(f => { if(f.item_id && f.state!=="muted") (m[f.item_id] ||= []).push(f); }); return m;
+}
+function itemRisk(i, fm){
+  const fs = (fm[i.id]||[]).filter(f=>f.state!=="muted");
+  if(fs.some(f=>f.urgent)) return 0;
+  if(fs.some(f=>["critical","high","medium"].includes(f.severity))) return 1;
+  if(i.status==="outdated") return 2;
+  if(fs.length) return 3;
+  if(i.status==="unknown") return 4;
+  return 5;
+}
+function chipFor(f){
+  if(f.exploited) return `<span class="chip xs c-exploited">▲ Exploited</span>`;
+  const sev = f.severity, txt = f.label && f.kind!=="vuln" ? (sev==="info"||sev==="low"?"○ ":"● ")+f.label : SEVTXT[sev];
+  return `<span class="chip xs c-${esc(sev)}">${esc(txt)}</span>`;
+}
+
+// ---- render
+function render(){
+  const inv = S.inventory || {}, c = inv.counts || {}, ss = SEC?.security?.summary || {};
+  $("scanned").textContent = inv.scanned ? `${items().length} items · scanned ${ago(inv.scanned)}` : "Not scanned yet — click Scan now";
+  $("nOut").textContent = c.outdated ?? "–"; $("nCur").textContent = c.current ?? "–"; $("nUnk").textContent = c.unknown ?? "–";
+  const rv = (ss.review||0) + (ss.urgent && !ss.review ? ss.urgent : 0);
+  $("nSec").innerHTML = `${rv}${ss.urgent?` <small>${ss.urgent} urgent</small>`:""}`;
+  $("secDot").className = "dot " + (ss.urgent ? "d-bad" : rv ? "d-outdated" : ss.unknown_checks ? "d-unknown" : "d-current");
+  $("secSub").textContent = ss.checks ? `${ss.checks-ss.unknown_checks} of ${ss.checks} checks ran${ss.unknown_checks?` · ${ss.unknown_checks} can't tell`:""}` : "";
+  $("secPill").textContent = ss.urgent || ""; $("secPill").classList.toggle("hide", !ss.urgent);
+  const cur = S.current, busy = !!cur;
+  $("bScan").disabled = $("bAll").disabled = $("bSel").disabled = $("bDeep").disabled = busy;
+  $("banner").classList.toggle("on", busy);
+  if(cur){
+    const step = (cur.steps||[]).filter(s=>s.status==="running").pop();
+    $("bnT").textContent = {scan:"Scanning",update:"Updating","update-all":"Updating everything"}[cur.kind] || cur.kind;
+    $("bnS").textContent = (cur.detail? cur.detail+" — " : "") + (step ? step.name : "checking versions and security…") + ` · started ${ago(cur.started)}`;
+  }
+  renderSources(); renderRows(); renderRuns(); renderSchedule(); renderSecurity();
+}
+function renderSources(){
+  const by = {}; items().forEach(i => { (by[i.source] ||= {n:0,o:0}); by[i.source].n++; if(i.status==="outdated") by[i.source].o++; });
+  const failed = Object.values(S.inventory.collectors||{}).filter(v=>!v.ok).length;
+  const npm = Object.keys(by).filter(s => s.startsWith("npm ·")).sort();
+  const known = ORDER.concat(npm, ORDER_TAIL);
+  const srcs = known.filter(s => by[s]).concat(Object.keys(by).filter(s => !known.includes(s)));
+  const tOut = items().filter(i=>i.status==="outdated").length;
+  let h = `<button data-src="all" data-key="src-all" class="${ui.src==="all"?"on":""}"><span>All sources${tOut?`<span class="badge">${tOut}</span>`:""}</span><span class="cnt">${items().length}</span></button><hr>`;
+  for(const s of srcs) h += `<button data-src="${esc(s)}" data-key="src-${esc(s)}" class="${ui.src===s?"on":""}"><span>${esc(s)}${by[s].o?`<span class="badge">${by[s].o}</span>`:""}</span><span class="cnt">${by[s].n}</span></button>`;
+  if(failed) h += `<hr><div class="sub" style="padding:4px 10px;color:var(--bad)">${failed} source(s) failed last scan — see Schedule</div>`;
+  setHTML($("sources"), h);
+}
+function actionBtn(i){
+  const busy = !!S.current;
+  if(i.hold && i.hold.mode==="hold") return `<button class="btn sm" data-x="${esc(i.id)}" data-key="act-${esc(i.id)}" title="${esc(i.hold.reason||"On hold")}">Held</button>`;
+  if(i.action==="update") return i.status==="current" ? "" : `<button class="btn sm ${i.status==="outdated"?"primary":""}" data-up="${esc(i.id)}" data-key="act-${esc(i.id)}" ${busy?"disabled":""}>${i.status==="outdated"?"Update":"Check & update"}</button>`;
+  if(appUpd(i) && i.self_update_blocked)
+    return `<button class="btn sm" data-x="${esc(i.id)}" data-key="act-${esc(i.id)}" title="${esc(i.name)} can't update itself — see how to fix">Fix needed</button>`;
+  if(appUpd(i) && i.status==="outdated")
+    return `<button class="btn sm primary" data-up="${esc(i.id)}" data-key="act-${esc(i.id)}" title="${esc(AU_TIP)}" ${busy?"disabled":""}>Open &amp; update</button>`;
+  if(i.action==="open"){
+    const t = i.source==="macOS" ? "Software Update" : i.source==="App Store apps" ? "App Store" : "Open app";
+    return `<button class="btn sm" data-open="${esc(i.id)}" data-key="act-${esc(i.id)}">${t}</button>`;
+  }
+  return "";
+}
+function visible(fm){
+  const q = ui.q.toLowerCase();
+  return items().filter(i =>
+    (ui.src==="all" || i.source===ui.src) &&
+    (ui.st==="all" || (ui.st==="security" ? (fm[i.id]||[]).length>0 : i.status===ui.st)) &&
+    (ui.deps || !i.dependency || i.status==="outdated" || (fm[i.id]||[]).length || ui.src==="Homebrew formulae") &&
+    (!q || (i.name+" "+i.source+" "+(i.note||"")).toLowerCase().includes(q)));
+}
+function rowDetail(i, fm){
+  const fs = fm[i.id]||[];
+  let h = "";
+  if(fs.length) h += `<div style="display:flex;flex-direction:column;gap:6px">${fs.map(f=>`<div>${chipFor(f)} <b>${esc(f.title)}</b> <span class="sub">${esc(f.detail)}</span></div>`).join("")}</div>`;
+  if(i.note) h += `<div class="sub">${esc(i.note)}</div>`;
+  if(appUpd(i) && i.self_update_blocked){
+    const b = i.self_update_blocked;
+    h += `<div class="fixbox"><div><span class="chip xs c-medium">● Can't update itself</span> <span class="sub">${esc(i.name)} is ${esc(b.why)}. Run this once in Terminal (needs your admin password), then use Open &amp; update:</span></div><pre class="cmd">${esc(b.command)}</pre><div><button class="btn sm" data-copytext="${esc(b.command)}" data-key="cpb-${esc(i.id)}">Copy</button></div></div>`;
+  }
+  if(appReady(i)){
+    h += `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn sm" data-up="${esc(i.id)}" data-key="au-${esc(i.id)}" ${S.current?"disabled":""}>Open &amp; update</button><button class="btn sm" data-open="${esc(i.id)}" data-key="ao-${esc(i.id)}">Just open</button><span class="sub">${esc(AU_TIP)}</span></div>`;
+  }
+  if(i.action==="update" || appUpd(i)){
+    const m = i.hold?.pinned ? "pinned" : i.hold?.mode || "none";
+    if(m==="pinned") h += `<div class="sub">Pinned with <code>brew pin</code> — run <code>brew unpin ${esc(i.name)}</code> to allow updates.</div>`;
+    else h += `<div class="radio" role="radiogroup" aria-label="Updates for ${esc(i.name)}"><b style="font-size:12px">Updates:</b>
+      <label><input type="radio" name="h-${esc(i.id)}" data-hold="none" data-id="${esc(i.id)}" data-key="h0-${esc(i.id)}" ${m==="none"?"checked":""}> Normal</label>
+      <label><input type="radio" name="h-${esc(i.id)}" data-hold="hold" data-id="${esc(i.id)}" data-key="h1-${esc(i.id)}" ${m==="hold"?"checked":""}> Hold all updates</label>
+      ${i.status==="outdated"&&i.latest?`<label><input type="radio" name="h-${esc(i.id)}" data-hold="skip" data-id="${esc(i.id)}" data-key="h2-${esc(i.id)}" ${m==="skip"?"checked":""}> Skip ${esc(i.latest)} only</label>`:""}
+      ${i.id.startsWith("brew:formula:")&&m==="hold"?`<span class="sub">Homebrew may still upgrade it as a dependency — <code>brew pin ${esc(i.name)}</code> prevents that.</span>`:""}</div>`;
+  }
+  if(i.path) h += `<div class="sub">${esc(i.path)}</div>`;
+  return h || `<div class="sub">No details.</div>`;
+}
+function renderRows(){
+  const fm = byItem(), st = {outdated:0,unknown:1,current:2};
+  const cmp = ui.sort==="name" ? (a,b)=>a.name.localeCompare(b.name)
+            : ui.sort==="status" ? (a,b)=>(st[a.status]-st[b.status]) || a.name.localeCompare(b.name)
+            : (a,b)=>(itemRisk(a,fm)-itemRisk(b,fm)) || a.name.localeCompare(b.name);
+  const v = visible(fm).sort(cmp);
+  $("empty").classList.toggle("hide", v.length>0);
+  setHTML($("rows"), v.map(i => {
+    const selectable = (i.action==="update" || appReady(i)) && i.status!=="current" && !(i.hold?.mode==="hold") && !(appUpd(i) && i.status!=="outdated");
+    const fs = (fm[i.id]||[]).slice().sort((a,b)=>a.rank-b.rank);
+    const badges = fs.slice(0,2).map(chipFor).join(" ") + (fs.length>2?` <span class="sub">+${fs.length-2}</span>`:"");
+    const extra = (i.hold?.mode==="hold"?` <span class="chip xs c-held">Held</span>`:"") + (i.hold?.mode==="skip"?` <span class="chip xs c-held">Skipping ${esc(i.hold.version)}</span>`:"") + (i.major?` <span class="chip xs c-info">major</span>`:"");
+    const open = ui.open.has(i.id);
+    return `<tr>
+      <td>${selectable?`<input type="checkbox" data-sel="${esc(i.id)}" data-key="sel-${esc(i.id)}" aria-label="Select ${esc(i.name)}" ${ui.sel.has(i.id)?"checked":""}>`:""}</td>
+      <td><button class="nmb" data-x="${esc(i.id)}" data-key="x-${esc(i.id)}" aria-expanded="${open}" aria-controls="xd-${esc(i.id)}"><span class="caret" aria-hidden="true">▶</span>${esc(i.name)}${i.dependency?` <span class="sub">· dependency</span>`:""}</button> ${badges}${extra}
+        ${i.note && !open?`<div class="note" title="${esc(i.note)}">${esc(i.note)}</div>`:""}</td>
+      <td class="src hide-md">${esc(i.source)}</td>
+      <td class="ver" title="${esc(i.installed ?? "")}">${esc(i.installed ?? "—")}</td>
+      <td class="ver ${i.status==="outdated"?"new":""}" title="${esc(i.latest ?? "")}">${esc(i.latest ?? "—")}</td>
+      <td><span class="chip c-${i.status}">${LABEL[i.status]}</span></td>
+      <td style="text-align:right">${actionBtn(i)}</td></tr>
+      ${open?`<tr class="xrow"><td colspan="7" id="xd-${esc(i.id)}">${rowDetail(i,fm)}</td></tr>`:""}`; }).join(""));
+  ui.sel.forEach(id => { if(!items().some(i=>i.id===id && i.status!=="current")) ui.sel.delete(id); });
+  $("selbar").classList.toggle("on", ui.sel.size>0); $("selN").textContent = `${ui.sel.size} selected`;
+}
+
+// ---- security tab
+function fixActions(f){
+  const fx = f.fix||{}, k = esc(f.id), b = [];
+  if(fx.type==="update" && f.state==="open"){
+    const it = items().find(i=>i.id===fx.item_id);
+    if(it && it.action==="update" && it.status!=="current") b.push(`<button class="btn sm primary" data-up="${esc(it.id)}" data-key="fu-${k}" ${S.current?"disabled":""}>Update</button>`);
+  }
+  if(fx.type==="open"){
+    if(fx.item_id) b.push(`<button class="btn sm" data-open="${esc(fx.item_id)}" data-key="fo-${k}">Software Update</button>`);
+    else if(fx.target) b.push(`<button class="btn sm" data-pane="${esc(fx.target)}" data-key="fp-${k}">Open Settings</button>`);
+  }
+  if(fx.type==="command") b.push(`<button class="btn sm" data-fx="${k}" data-key="fc-${k}" aria-expanded="${ui.fOpen.has(f.id)}">Show command</button>`);
+  else b.push(`<button class="btn sm" data-fx="${k}" data-key="fd-${k}" aria-expanded="${ui.fOpen.has(f.id)}">Details</button>`);
+  b.push(f.state==="muted" ? `<button class="btn sm" data-unmute="${k}" data-key="um-${k}">Unmute</button>`
+                           : `<select data-mute="${k}" data-key="mu-${k}" aria-label="Mute"><option value="">Mute…</option><option value="7">7 days</option><option value="30">30 days</option><option value="90">90 days</option><option value="0">Until it changes</option></select>`);
+  return b.join("");
+}
+function findingRow(f){
+  const src = f.source||{}, url = safeUrl(src.url), open = ui.fOpen.has(f.id), fx = f.fix||{};
+  const meta = [KIND[f.kind]||f.kind, f.subject, src.name ? (src.name + (src.asof?`, data from ${day(src.asof)}`:"")) : null,
+                f.state==="held"?"on hold — fix waits until you release it":null, f.state==="muted"?"muted":null,
+                f.stale?"from an earlier check (latest run couldn't answer)":null, `first seen ${day(f.first_seen)}`].filter(Boolean).map(esc).join(" · ");
+  let more = "";
+  if(open){
+    more = `<div class="more"><div>${esc(f.detail)}</div>`;
+    if(fx.type==="command") more += `<div class="fixbox">${fx.note?`<div class="w">${esc(fx.note)}</div>`:""}${fx.needs_sudo?`<div class="w">This needs your admin password, so Zeke won't run it. Copy it into Terminal.</div>`:""}<pre class="cmd">${esc(fx.command)}</pre><div><button class="btn sm" data-copy="${esc(f.id)}" data-key="cp-${esc(f.id)}">Copy</button></div></div>`;
+    else if(fx.note) more += `<div class="w sub">${esc(fx.note)}</div>`;
+    if(fx.fixed_in) more += `<div class="sub">Fixed in ${esc(fx.fixed_in)}</div>`;
+    const refs = (f.refs||[]).slice(0,6).map(r => /^(CVE|GHSA)-/.test(r) ? `<a href="https://osv.dev/vulnerability/${encodeURIComponent(r)}" target="_blank" rel="noreferrer">${esc(r)}</a>` : esc(r)).join(" · ");
+    if(refs) more += `<div class="sub">References: ${refs}</div>`;
+    if(url) more += `<div class="sub"><a href="${esc(url)}" target="_blank" rel="noreferrer">Source</a></div>`;
+    more += `</div>`;
+  }
+  return `<div class="find">${chipFor(f)}<div class="ttl">${esc(f.title)}</div><div class="acts">${fixActions(f)}</div><div class="meta">${meta}</div>${more}</div>`;
+}
+function renderSecurity(){
+  if(!SEC) return;
+  const fs = findings(), sec = SEC.security||{}, since = Date.now() - 7*86400e3;
+  let list;
+  if(ui.secF==="muted") list = fs.filter(f=>f.state==="muted"||f.state==="held");
+  else if(ui.secF==="new") list = fs.filter(f=>f.state==="open" && new Date(f.first_seen+"T00:00:00") >= since);
+  else list = fs.filter(f=>f.state==="open");
+  const att = list.filter(f => ui.secF!=="open" || f.urgent || ["critical","high","medium"].includes(f.severity));
+  const noted = ui.secF==="open" ? list.filter(f => !att.includes(f)) : [];
+  const cov = sec.coverage||{};
+  setHTML($("attention"), att.length ? att.map(findingRow).join("") :
+    `<div class="empty">${ui.secF==="open"?"Nothing needs attention in what was checked.":"Nothing here."}<div class="sub" style="margin-top:6px">${cov.items?`${cov.with_vuln_source} of ${cov.items} items have a vulnerability source.`:""}</div></div>`);
+  $("notedBox").classList.toggle("hide", !noted.length);
+  $("notedSum").textContent = `Also noted (${noted.length}) — low-risk and informational`;
+  setHTML($("noted"), noted.map(findingRow).join(""));
+  // protections
+  const ck = sec.checks||{}, rows = ck.posture?.data?.rows || [], mp = ck.macos_patch;
+  const st = s => s==="ok" ? `<span class="chip xs c-ok">✓ On</span>` : s==="issue" ? `<span class="chip xs c-high">▲ Off</span>` : `<span class="chip xs c-unknown">? Can't tell</span>`;
+  let ph = rows.map(r => `<span>${esc(r.label)}</span>${r.key==="xprotect" ? (r.state==="ok"?`<span class="chip xs c-ok">✓ ${esc(r.value)}</span>`:r.state==="issue"?`<span class="chip xs c-low">○ ${esc(r.value)}</span>`:st(r.state)) : st(r.state)}`).join("");
+  if(mp) ph += `<span>macOS</span>${mp.status==="ok"?`<span class="chip xs c-ok">✓ ${esc(mp.data?.running)} is latest</span>`:mp.status==="issue"?`<span class="chip xs c-high">▲ ${esc(mp.data?.running)} → ${esc(mp.data?.latest)}</span>`:`<span class="chip xs c-unknown" title="${esc(mp.error)}">? Can't tell</span>`}`;
+  setHTML($("prot"), (ph? `<div class="prot">${ph}</div>` : `<div class="empty">Not checked yet</div>`) + (ck.posture?.ran?`<div class="sub" style="padding:0 14px 12px">checked ${ago(ck.posture.ran)}</div>`:""));
+  // checks
+  const chk = Object.entries(ck).map(([id,c]) => {
+    const s = c.status, chip = s==="ok" ? `<span class="chip xs c-ok">✓ No issues</span>` : s==="issue" ? `<span class="chip xs c-medium">● Found items</span>` : s==="partial" ? `<span class="chip xs c-medium">● Partly checked</span>` : `<span class="chip xs c-unknown">? Can't tell</span>`;
+    const parts = [c.covered!=null?`${c.covered} checked`:null, c.data_asof?`data from ${day(c.data_asof)}`:null, c.ran?`ran ${ago(c.ran)}`:null].filter(Boolean).join(" · ");
+    const toggle = id==="brew_vulns" ? `<button class="btn sm" data-bv="${SEC.settings?.net_brew_vulns?"off":"on"}" data-key="bv">${SEC.settings?.net_brew_vulns?"Turn off":"Turn on…"}</button>` : "";
+    return `<div class="row"><div><b>${esc(c.label||id)}</b><div class="d">${esc(parts)}${c.error?`<br>${esc(c.error)}`:""}</div></div><div style="display:flex;gap:8px;align-items:center">${toggle}${chip}</div></div>`;
+  }).join("");
+  const notcov = ["Apps (no vulnerability source)", "npm packages (not checked — would send names to OSV.dev)"];
+  setHTML($("checked"), chk + `<div class="row"><div class="d">Not covered: ${notcov.map(esc).join("; ")}. ${cov.items?`${cov.with_vuln_source} of ${cov.items} items have a vulnerability source.`:""}</div></div>`);
+  // ledger
+  setHTML($("ledger"), (SEC.ledger||[]).map(l => {
+    const on = !l.setting || SEC.settings?.[l.setting];
+    return `<tr><td><b>${esc(l.label)}</b></td><td class="src">${esc(l.host)}</td><td>${esc(l.cls)}<div class="sub">${esc(l.sends)}</div></td>
+      <td class="src">${l.setting && !on ? "Off" : l.last_contact ? esc(ago(l.last_contact)) + (l.last_bytes?` · ${(l.last_bytes/1048576).toFixed(1)} MB`:"") : (l.cls||"").startsWith("Via")||(l.cls||"").includes("via")||l.id==="appstore-lookup" ? "during scans" : "—"}</td>
+      <td>${l.setting?`<label class="sw" title="${on?"On":"Off"}"><input type="checkbox" role="switch" data-ledger="${esc(l.setting)}" data-key="lg-${esc(l.id)}" aria-label="${esc(l.label)}" ${on?"checked":""}><span></span></label>`:""}</td></tr>`;
+  }).join(""));
+}
+
+// ---- activity
+function renderRuns(){
+  const runs = S.runs || [];
+  if(!ui.run && runs[0]) ui.run = runs[0].id;
+  let h = runs.map(r => `<button class="run ${ui.run===r.id&&!ui.legacy?"on":""}" data-run="${esc(r.id)}" data-key="run-${esc(r.id)}">
+     <div class="t"><span>${esc({scan:"Scan",update:"Update","update-all":"Update everything"}[r.kind]||r.kind)}${r.detail==="deep check"?" (deep)":""}</span><span class="chip xs c-${esc(r.result)}">${esc(r.result)}</span></div>
+     <div class="m">${esc(when(r.started))} · ${esc(r.trigger)}${r.detail&&r.detail!=="deep check"?" · "+esc(r.detail):""}</div></button>`).join("");
+  if(S.legacy_log) h += `<hr style="border:0;border-top:1px solid var(--line)"><button class="run ${ui.legacy?"on":""}" data-legacy="1" data-key="legacy"><div class="t"><span>Older log</span></div><div class="m">data/legacy.log</div></button>`;
+  setHTML($("runs"), h);
+  if(ui.tab==="act") renderDetail();
+}
+function renderDetail(){
+  if(ui.legacy){
+    if(ui.logRun!=="legacy"){ ui.logRun="legacy"; ui.logOff=-1; $("detail").innerHTML = `<b>Older log</b><pre class="log" id="log"></pre>`; pollLog(); }
+    return;
+  }
+  const r = (S.runs||[]).find(x=>x.id===ui.run);
+  if(!r){ $("detail").innerHTML = `<div class="empty">Pick a run</div>`; return; }
+  const steps = r.steps.map(s => `<div class="step"><span class="ico i-${esc(s.status)}">${s.status==="ok"?"✓":s.status==="running"?'<span class="spin" style="width:10px;height:10px"></span>':s.status==="no-change"||s.status==="cancelled"?"–":"!"}</span>
+     <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(s.name)}</span>
+     <span class="chip xs c-${esc(s.status)}">${s.status==="needs-password"?"needs password":s.status==="no-change"?"not updated":s.status==="needs-fix"?"needs a fix":esc(s.status)}${s.exit&&s.exit!==0?" · "+esc(s.exit):""}</span>
+     <span class="sub" style="font-variant-numeric:tabular-nums">${s.seconds!=null?esc(s.seconds)+"s":""}</span>${s.note?`<span class="snote">${esc(s.note)}</span>`:""}</div>`).join("");
+  const pl = r.plan ? `<div class="sub">Plan: ${r.plan.security_first.length} security fix(es) first · ${r.plan.others.length} other(s) · ${r.plan.held.length} held · ${r.plan.skipped.length} skipped</div>` : "";
+  const head = `<div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><div><b>${esc({scan:"Scan",update:"Update","update-all":"Update everything"}[r.kind]||r.kind)}</b> <span class="sub">${esc(when(r.started))} → ${r.ended?esc(when(r.ended)):"running"} · trigger: ${esc(r.trigger)}</span></div><span class="chip c-${esc(r.result)}">${esc(r.result)}</span></div>`;
+  const pw = r.steps.some(s=>s.status==="needs-password") ? `<div class="sub" style="color:var(--bad)">A step needs your admin password. Run it in Terminal, e.g. <code>brew upgrade --cask --greedy</code>.</div>` : "";
+  if(ui.logRun!==r.id){
+    ui.logRun=r.id; ui.logOff=0;
+    $("detail").innerHTML = `<div id="dhead">${head}</div>` + pl + pw + `<div class="steps" id="steps">${steps}</div><pre class="log" id="log"></pre>`;
+    pollLog();
+  } else { setHTML($("dhead"), head); const st=$("steps"); if(st) setHTML(st, steps); }
+}
+async function pollLog(){
+  pollLog.h = 0;
+  const id = ui.logRun; if(!id || ui.tab!=="act") return;
+  const url = id==="legacy" ? `/api/legacy-log?offset=${ui.logOff}` : `/api/runs/${encodeURIComponent(id)}/log?offset=${ui.logOff}`;
+  try{
+    const j = await api(url);
+    if(id!==ui.logRun) return;
+    const el = $("log"); if(!el) return;
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
+    if(j.text){ el.textContent += j.text; if(atBottom || ui.logOff<=0) el.scrollTop = el.scrollHeight; }
+    ui.logOff = j.offset ?? ui.logOff;
+  }catch(e){}
+  if(S && S.current && S.current.id===id) pollLog.h = setTimeout(pollLog, 1000);
+}
+
+// ---- schedule
+function renderSchedule(){
+  const sc = S.schedule||{}, st = sc.settings||{};
+  $("sDaily").checked = !!st.daily_auto; $("sWeekly").checked = !!st.weekly_check; $("sNotify").checked = st.notify_security!==false;
+  const lastBy = t => (S.runs||[]).find(r=>r.trigger===t);
+  setHTML($("jobs"), (sc.jobs||[]).map(j => {
+    const retired = j.label.endsWith("mac-update");
+    const state = retired ? (j.loaded ? "still loaded" : "retired") : !j.loaded ? "not loaded" : j.state==="running" ? "running" : "waiting";
+    const cls = retired ? (j.loaded?"c-failed":"c-unknown") : !j.loaded ? "c-failed" : "c-ok";
+    let rows = `<dt>When</dt><dd>${esc(j.when)}</dd>`;
+    if(j.label.endsWith(".weekly")){ const l=lastBy("weekly"); rows += `<dt>Last run</dt><dd>${l?esc(when(l.started))+" · "+esc(l.result):"not yet"}</dd><dt>Next run</dt><dd>${esc(when(j.next))}</dd>`; }
+    if(j.label.endsWith(".daily")){ const l=lastBy("daily-auto"), ld=j.last_daily; rows += `<dt>Last run</dt><dd>${l?esc(when(l.started))+" · "+esc(l.result):(j.last_day?"old script · "+esc(j.last_day):"not yet")}${ld&&ld.result&&ld.result.startsWith("skipped")?" · "+esc(ld.result):""}</dd><dt>Next run</dt><dd>${st.daily_auto ? (j.last_day===new Date().toLocaleDateString("en-CA") ? "tomorrow, on a fast connection" : "next fast connection (checks hourly)") : "security data only (auto-update off)"}</dd>`; }
+    if(j.loaded && !retired) rows += `<dt>Last exit</dt><dd>${esc(j.last_exit ?? "—")}</dd>`;
+    return `<div class="card job"><h3>${esc(j.name)}<span class="chip xs ${cls}">${esc(state)}</span></h3><dl class="kv">${rows}</dl><div class="sub" style="font-family:ui-monospace,Menlo,monospace;font-size:11px">${esc(j.label)}</div></div>`;
+  }).join(""));
+  const fd = SEC?.feeds || {}, FN = {"kev":"CISA exploited-vulnerability list","sofa":"macOS patch feed (SOFA)","osv-RubyGems":"OSV database — Ruby gems","osv-PyPI":"OSV database — Python"};
+  setHTML($("feeds"), Object.entries(fd).map(([k,f]) => `<div class="row"><div><b>${esc(FN[k]||k)}</b><div class="d">${f.asof?`data from ${esc(day(f.asof))}`:"not downloaded yet"}${f.bytes?` · ${(f.bytes/1048576).toFixed(1)} MB`:""}${f.error?`<br>${esc(f.error)}`:""}</div></div><span class="chip xs ${f.state==="fresh"||f.state==="aging"?"c-ok":"c-unknown"}">${f.state==="fresh"?"✓ current":f.state==="aging"?"✓ "+esc(day(f.asof)):f.state==="stale"?"? too old — can't tell":"? missing"}</span></div>`).join("") || `<div class="empty">—</div>`);
+  const cols = S.inventory.collectors||{};
+  setHTML($("cols"), Object.keys(cols).sort().map(k => { const c=cols[k];
+    return `<div class="row"><div><b>${esc(colLabel(k))}</b>${c.error?`<div class="d" style="color:var(--bad)">${esc(c.error)}</div>`:""}</div><span class="chip xs ${c.ok?"c-ok":"c-failed"}">${c.ok?(c.count+" found"):"failed"}</span></div>`; }).join("") || `<div class="empty">No scan yet</div>`);
+}
+
+// ---- actions
+function selectTab(t, focus){
+  ui.tab = t;
+  document.querySelectorAll('nav.tabs [role="tab"]').forEach(b => { const on = b.dataset.tab===t; b.setAttribute("aria-selected", on); b.tabIndex = on?0:-1; if(on&&focus) b.focus(); });
+  ["inv","sec","act","sch"].forEach(x=>$("t-"+x).classList.toggle("hide",x!==t));
+  if(t==="act"){ ui.logRun=null; renderDetail(); }
+}
+async function updateAll(){
+  let pl; try{ pl = await api("/api/plan"); }catch(e){ return; }
+  const n = pl.security_first.length + pl.others.length, nm = id => esc(pl.names[id] || id.split(":").pop());
+  const majors = pl.majors.map(nm);
+  const body = `<ul>
+    ${pl.security_first.length?`<li><b>${pl.security_first.length} security fix${pl.security_first.length>1?"es":""} first:</b> ${pl.security_first.map(nm).join(", ")}</li>`:""}
+    <li>${pl.others.length} other update${pl.others.length!==1?"s":""}${majors.length?` (${majors.length} major version${majors.length>1?"s":""}: ${majors.join(", ")})`:""}</li>
+    <li class="sub">Left alone: ${pl.held.length} on hold, ${pl.skipped.length} skipped version${pl.skipped.length!==1?"s":""}, apps outside Homebrew (use <b>Open &amp; update</b> on those), macOS and Python packages.</li></ul>
+    <div class="sub">Self-updaters (opencode, uv tools) always run. Then Homebrew cleanup and a fresh scan.</div>`;
+  if(await ask(n ? `Update ${n} item${n!==1?"s":""}?` : "Run updaters?", body, "Update")){ await post("/api/update-all"); toast("Updating everything…"); }
+}
+async function post(path, body={}){ const r = await api(path, body); load(); return r; }
+document.addEventListener("click", async e => {
+  const t = e.target.closest("button, input[type=checkbox], input[type=radio], a"); if(!t) return;
+  try{
+    if(t.dataset.tab){ selectTab(t.dataset.tab); return; }
+    if(t.dataset.goto){ selectTab(t.dataset.goto); return; }
+    if(t.dataset.src){ ui.src=t.dataset.src; renderSources(); renderRows(); return; }
+    if(t.dataset.st && t.closest("#seg,.stats")){ ui.st=t.dataset.st; document.querySelectorAll("#seg button").forEach(b=>b.classList.toggle("on",b.dataset.st===ui.st)); if(t.closest(".stats")){ ui.src="all"; selectTab("inv"); renderSources(); } renderRows(); return; }
+    if(t.dataset.f){ ui.secF=t.dataset.f; document.querySelectorAll("#secSeg button").forEach(b=>b.classList.toggle("on",b.dataset.f===ui.secF)); renderSecurity(); return; }
+    if(t.dataset.x){ ui.open.has(t.dataset.x) ? ui.open.delete(t.dataset.x) : ui.open.add(t.dataset.x); renderRows(); return; }
+    if(t.dataset.fx){ ui.fOpen.has(t.dataset.fx) ? ui.fOpen.delete(t.dataset.fx) : ui.fOpen.add(t.dataset.fx); renderSecurity(); return; }
+    if(t.dataset.copytext){ copy(t.dataset.copytext); return; }
+    if(t.dataset.copy){ const f = findings().find(x=>x.id===t.dataset.copy); if(f) copy(f.fix.command); return; }
+    if(t.dataset.run){ ui.run=t.dataset.run; ui.legacy=false; renderRuns(); return; }
+    if(t.dataset.legacy){ ui.legacy=true; ui.logRun=null; renderRuns(); return; }
+    if(t.dataset.sel){ t.checked ? ui.sel.add(t.dataset.sel) : ui.sel.delete(t.dataset.sel); renderRows(); return; }
+    if(t.dataset.hold){ const i = items().find(x=>x.id===t.dataset.id); await post("/api/hold",{id:t.dataset.id, mode:t.dataset.hold, version: t.dataset.hold==="skip"? i.latest : undefined}); toast(t.dataset.hold==="none"?"Back to normal updates":t.dataset.hold==="hold"?"On hold":"Skipping "+i.latest); SEC=null; return; }
+    if(t.id==="selAll"){ const fm=byItem(); visible(fm).filter(i=>(i.action==="update"&&i.status!=="current" || appReady(i)&&i.status==="outdated")&&i.hold?.mode!=="hold").forEach(i=> t.checked?ui.sel.add(i.id):ui.sel.delete(i.id)); renderRows(); return; }
+    if(t.id==="bSelClr"){ ui.sel.clear(); $("selAll").checked=false; renderRows(); return; }
+    if(t.dataset.up){ const it = items().find(x=>x.id===t.dataset.up); await post("/api/update",{ids:[t.dataset.up]}); toast(it&&appUpd(it) ? `Opening ${it.name} to update — it will close when done` : "Update started"); return; }
+    if(t.id==="bSel"){ await post("/api/update",{ids:[...ui.sel]}); ui.sel.clear(); toast("Update started"); return; }
+    if(t.dataset.open){ await api("/api/open",{id:t.dataset.open}); toast("Opened"); return; }
+    if(t.dataset.pane){ await api("/api/open-pane",{key:t.dataset.pane}); toast("Opened System Settings"); return; }
+    if(t.dataset.unmute){ await post("/api/mute",{id:t.dataset.unmute, muted:false}); SEC=null; toast("Unmuted"); return; }
+    if(t.dataset.bv){
+      if(t.dataset.bv==="on" && !(await ask("Turn on Homebrew vulnerability checks?", `<p>Homebrew will send the <b>source address and version of each of your ${items().filter(i=>i.source==="Homebrew formulae").length} formulae</b> to OSV.dev (run by Google). Nothing else is sent. It runs in the weekly deep check and when you click “Deep check now”.</p>`, "Turn on"))) return;
+      await post("/api/settings",{net_brew_vulns: t.dataset.bv==="on"}); SEC=null; toast(t.dataset.bv==="on"?"Turned on — runs in the next deep check":"Turned off"); return;
+    }
+    if(t.dataset.ledger){ e.preventDefault(); const on=!SEC.settings?.[t.dataset.ledger];
+      if(on && !(await ask("Turn on Homebrew vulnerability checks?", `<p>This sends your formula list (source address and version of each) to OSV.dev, run by Google.</p>`, "Turn on"))) return;
+      await post("/api/settings",{[t.dataset.ledger]: on}); SEC=null; return; }
+    if(t.id==="bScan"){ await post("/api/scan"); toast("Scanning…"); return; }
+    if(t.id==="bDeep"){ await post("/api/scan",{deep:true}); toast("Deep check started"); return; }
+    if(t.id==="bFeeds"){ await post("/api/feeds"); toast("Refreshing security data in the background"); return; }
+    if(t.id==="bAll"){ updateAll(); return; }
+    if(t.id==="bnStop"){ if(await ask("Stop this run?", "<p>The current step is stopped. Apps Zeke opened for this run are closed. Anything already updated stays updated.</p>", "Stop", true)){ await post("/api/cancel"); toast("Stopping…"); } return; }
+    if(t.id==="bnLog"){ if(S.current){ ui.run=S.current.id; ui.legacy=false; } selectTab("act"); return; }
+    if(t.id==="sDaily"||t.id==="sWeekly"||t.id==="sNotify"){ await post("/api/settings",{daily_auto:$("sDaily").checked, weekly_check:$("sWeekly").checked, notify_security:$("sNotify").checked}); toast("Saved"); return; }
+  }catch(err){}
+});
+document.addEventListener("change", async e => {
+  const t = e.target;
+  if(t.dataset.mute && t.value!==""){ const d = +t.value; try{ await post("/api/mute",{id:t.dataset.mute, muted:true, days: d? d : null}); SEC=null; toast("Muted"); }catch(err){} }
+  if(t.id==="sort"){ ui.sort=t.value; renderRows(); }
+});
+document.querySelector("nav.tabs").addEventListener("keydown", e => {
+  const tabs = ["inv","sec","act","sch"], i = tabs.indexOf(ui.tab);
+  if(e.key==="ArrowRight"||e.key==="ArrowLeft"){ e.preventDefault(); selectTab(tabs[(i + (e.key==="ArrowRight"?1:3)) % 4], true); }
+});
+$("q").addEventListener("input", e => { ui.q=e.target.value; renderRows(); });
+$("deps").addEventListener("change", e => { ui.deps=e.target.checked; renderRows(); });
+let wasBusy=false;
+const _render = render;
+render = function(){ _render(); const b=!!S.current; if(wasBusy && !b){ toast("Finished"); if(ui.tab==="act"){ ui.logRun=null; renderDetail(); } } if(b && ui.tab==="act" && S.current.id===ui.run && !pollLog.h) pollLog(); wasBusy=b; };
+document.addEventListener("visibilitychange", () => { if(!document.hidden) load(); });
+load();
+</script>
+</body>
+</html>
